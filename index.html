@@ -1762,6 +1762,53 @@ wget -O- SERVICE_CLUSTER_IP:6262 # ClusterIP works as well
 kubectl delete svc foo
 kubectl delete deploy foo
 #====================================================================================================
+Create a network policy to allow traffic from the 'Internal' application only to the 'payroll-service' and 'db-service'
+Policy Name: internal-policy
+Policy Types: Egress
+Egress Allow: payroll
+Payroll Port: 8080
+Egress Allow: mysql
+MYSQL Port: 3306
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: internal-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      name: internal
+  policyTypes:
+  - Egress
+  - Ingress
+  ingress:
+    - {}
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          name: mysql
+    ports:
+    - protocol: TCP
+      port: 3306
+
+  - to:
+    - podSelector:
+        matchLabels:
+          name: payroll
+    ports:
+    - protocol: TCP
+      port: 8080
+ 
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+
+
+#==================================================================================================
 Create an nginx deployment of 2 replicas, expose it via a ClusterIP service on port 80. 
 Create a NetworkPolicy so that only pods with labels 'access: granted' can access the deployment and apply it
 
