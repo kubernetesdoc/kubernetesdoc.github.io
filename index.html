@@ -20,9 +20,6 @@ kubectl explain replicaset
 
 Here payroll-service is the service name in the namespace : finance
 
-
- 
-
 # the folllwing will ssh to the pod and show ssh prompt
 =========================================================
 kubectl exec -it webapp-color-pod -- sh
@@ -30,9 +27,6 @@ kubectl exec -it webapp-color-pod -- sh
 netcat command to access the service from pod 
 ==================================================
 #opt: nc -z -v -w l  secure-service 80
-
-
-
 
 kubectl run nginx --image=nginx --restart=Never --dry-run=client -n mynamespace -o yaml > pod.yaml
 
@@ -70,8 +64,14 @@ kubectl run busybox --image=busybox --rm -it --restart=Never -- wget -O- 10.1.1.
 #Get pod's YAML
 kubectl get po nginx -o yaml
 kubectl describe po nginx
+#================================================
+To execute a command in a container of a pod ..
 
+kubectl exec webapp -- cat /log/app.log
 
+Here it views the logs 
+
+#===============================================
 kubectl logs nginx
 # If pod crashed and restarted, get logs about the previous instance
 kubectl logs nginx -p
@@ -1384,8 +1384,12 @@ spec:
   dnsPolicy: ClusterFirst
   restartPolicy: Never
 status: {}
+
 kubectl create -f pod.yaml
 kubectl describe pod nginx # will see that a new secret called myuser-token-***** has been mounted
+
+===================================================================================
+everyminute
 
 Every Minutes    :   * * * * *
 At every 1 minute:   * * * * *
@@ -2045,6 +2049,27 @@ spec:
       - name: nginx-storage
         persistentVolumeClaim:
           claimName: foo-pvc
+=======================================================
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webapp
+spec:
+  containers:
+  - name: event-simulator
+    image: kodekloud/event-simulator
+    env:
+    - name: LOG_HANDLERS
+      value: file
+    volumeMounts:
+    - mountPath: /log
+      name: log-volume
+
+  volumes:
+  - name: log-volume
+    persistentVolumeClaim:
+      claimName: claim-log-1
 		  
 ===================================================
 apiVersion: apps/v1
@@ -2615,9 +2640,21 @@ spec:
         image: educative/k8sbook:latest
         ports:
         - containerPort: 8080
-		
 =================================================================
+How to do the rolling update by updating the image .
 
+k set image deploy frontend simple-webapp=kodekloud/webapp-color:v2
+
+frontend ==> deployment name 
+simple-webapp ==> container name
+=================================================================
+Change the deployment strategy to Recreate
+Do not delete and re-create the deployment. 
+Only update the strategy type for the existing deployment.
+
+
+
+=================================================================
 apiVersion: apps/v1  #Older versions of k8s use apps/v1beta1
 kind: Deployment
 metadata:
@@ -2645,6 +2682,22 @@ spec:
         - containerPort: 8080
 		
 ========================================================================
+We have deployed a number of PODs. They are labelled with tier, env and bu. How many PODs exist in the dev environment?
+Use selectors to filter the output
+k get pods -l env=dev
+OR 
+kubectl get pods --selector env=dev
+OR 
+kubectl get pods --selector env=dev --no-headers | wc -l
+=========================================================================
+How many objects are in the prod environment including PODs, ReplicaSets and any other objects?
+
+k get all -l env=prod --no-headers | wc -l
+=================================================
+Identify the POD which is part of the prod environment, the finance BU and of frontend tier?
+
+kubectl get pods --selector env=prod,bu=finance,tier=frontend
+
 
 
 
