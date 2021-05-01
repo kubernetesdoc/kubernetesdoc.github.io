@@ -772,6 +772,20 @@ spec:
         - echo hello;sleep 30;echo world
         image: busybox
         name: busybox
+===================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: throw-dice-job
+spec:
+  completions: 3
+  parallelism: 3
+  backoffLimit: 25 # This is so the job does not quit before it succeeds.
+  template:
+    spec:
+      containers:
+      - name: math-add
+        image: kodekloud/throw-dice		
 ======================================================
 Create the same job, but make it run 5 parallel times
 apiVersion: batch/v1
@@ -799,6 +813,33 @@ spec:
         resources: {}
       restartPolicy: OnFailure
 status: {}
+============================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: throw-dice-job
+spec:
+  backoffLimit: 15 # This is so the job does not quit before it succeeds.
+  template:
+    spec:
+      containers:
+      - name: math-add
+        image: kodekloud/throw-dice
+      restartPolicy: Never
+======================================
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: throw-dice-job
+spec:
+  completions: 3
+  backoffLimit: 25 # This is so the job does not quit before it succeeds.
+  template:
+    spec:
+      containers:
+      - name: math-add
+        image: kodekloud/throw-dice
 
 ====================================
 Create a cron job with image busybox that runs on a schedule of "*/1 * * * *" and 
@@ -854,6 +895,49 @@ spec:
 status: {}
 
 =============================================================
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: throw-dice-cron-job
+spec:
+  schedule: "30 21 * * *"
+  jobTemplate:
+    spec:
+      completions: 3
+      parallelism: 3
+      backoffLimit: 25 # This is so the job does not quit before it succeeds.
+      template:
+        spec:
+          containers:
+          - name: math-add
+            image: kodekloud/throw-dice
+============================================================
+Let us now schedule that job to run at 21:30 hours every day.
+Create a CronJob for this			
+
+CronJob Name: throw-dice-cron-job
+Image Name: kodekloud/throw-dice
+Schedule: 30 21 * * *
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: throw-dice-cron-job
+spec:
+  schedule: "30 21 * * *"
+  jobTemplate:
+    spec:
+      completions: 3
+      parallelism: 3
+      backoffLimit: 25 # This is so the job does not quit before it succeeds.
+      template:
+        spec:
+          containers:
+          - name: math-add
+            image: kodekloud/throw-dice
+
+==========================================================
 ######### Configuration ##############
 
 Create a configmap named config with values foo=lala,foo2=lolo
